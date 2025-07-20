@@ -13,30 +13,19 @@ vite.config.js
 
 ## File: src/main.jsx
 ```javascript
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
-  </StrictMode>,
-)
-```
-
-## File: src/App.jsx
-```javascript
-function App() {
-  return <p className="text-red-500 font-bold underline">Hello, world!</p>;
-}
-
-export default App;
-```
-
-## File: src/index.css
-```css
-@import "tailwindcss";
+    <StyledEngineProvider enableCssLayer>
+      <GlobalStyles styles="@layer theme, base, mui, components, utilities;" />
+      <App />
+    </StyledEngineProvider>
+  </StrictMode>
+);
 ```
 
 ## File: index.html
@@ -57,6 +46,37 @@ export default App;
 </html>
 ```
 
+## File: vite.config.js
+```javascript
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+});
+```
+
+## File: src/App.jsx
+```javascript
+import Button from "@mui/material/Button";
+
+export default function ButtonUsage() {
+  return <Button variant="contained">Hello world</Button>;
+}
+```
+
+## File: src/index.css
+```css
+@import "tailwindcss";
+
+@import "@fontsource/roboto/300.css";
+@import "@fontsource/roboto/400.css";
+@import "@fontsource/roboto/500.css";
+@import "@fontsource/roboto/700.css";
+```
+
 ## File: package.json
 ```json
 {
@@ -73,6 +93,8 @@ export default App;
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@fontsource/roboto": "^5.2.6",
+    "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
     "@tailwindcss/vite": "^4.1.11",
     "react": "^19.1.0",
@@ -91,16 +113,4 @@ export default App;
     "vite": "^7.0.4"
   }
 }
-```
-
-## File: vite.config.js
-```javascript
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-});
 ```
