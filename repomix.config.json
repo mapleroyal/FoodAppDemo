@@ -1,0 +1,29 @@
+{
+  "output": {
+    "filePath": "repomix-output.md",
+    "style": "markdown",
+    "parsableStyle": false,
+    "fileSummary": false,
+    "directoryStructure": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "compress": false,
+    "topFilesLength": 5,
+    "showLineNumbers": false,
+    "copyToClipboard": false
+  },
+  "include": [],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "**/*.{md,svg}",
+      "eslint.config.js",
+      "repomix.config.json",
+      "CODEOWNERS"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}
