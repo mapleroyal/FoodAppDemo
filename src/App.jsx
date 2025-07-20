@@ -1,5 +1,5 @@
-function App() {
-  return <p className="text-red-500 font-bold underline">Hello, world!</p>;
-}
+import Button from "@mui/material/Button";
 
-export default App;
+export default function ButtonUsage() {
+  return <Button variant="contained">Hello world</Button>;
+}

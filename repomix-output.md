@@ -11,20 +11,6 @@ vite.config.js
 
 # Files
 
-## File: src/App.jsx
-```javascript
-function App() {
-  return <p className="text-red underline">peepeepoopoo</p>;
-}
-
-export default App;
-```
-
-## File: src/index.css
-```css
-@import "tailwindcss";
-```
-
 ## File: src/main.jsx
 ```javascript
 import { StrictMode } from 'react'
@@ -37,6 +23,20 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+```
+
+## File: src/App.jsx
+```javascript
+function App() {
+  return <p className="text-red-500 font-bold underline">Hello, world!</p>;
+}
+
+export default App;
+```
+
+## File: src/index.css
+```css
+@import "tailwindcss";
 ```
 
 ## File: index.html
@@ -71,6 +71,9 @@ createRoot(document.getElementById('root')).render(
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.2.0",
     "@tailwindcss/vite": "^4.1.11",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -98,6 +101,6 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss],
+  plugins: [react(), tailwindcss()],
 });
 ```
