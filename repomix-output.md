@@ -1,8 +1,12 @@
 # Directory Structure
 ```
 src/
+  pages/
+    About.jsx
+    Home.jsx
   App.jsx
   index.css
+  Layout.jsx
   main.jsx
 index.html
 package.json
@@ -11,26 +15,63 @@ vite.config.js
 
 # Files
 
-## File: src/main.jsx
+## File: src/pages/About.jsx
 ```javascript
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router";
-import "./index.css";
-import App from "./App.jsx";
-import { StyledEngineProvider } from "@mui/material/styles";
-import GlobalStyles from "@mui/material/GlobalStyles";
+export default function About() {
+  return (
+    <>
+      <h2>About Page</h2>
+      <p>This is the about page.</p>
+    </>
+  );
+}
+```
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <BrowserRouter>
-      <StyledEngineProvider enableCssLayer>
-        <GlobalStyles styles="@layer theme, base, mui, components, utilities;" />
-        <App />
-      </StyledEngineProvider>
-    </BrowserRouter>
-  </StrictMode>
-);
+## File: src/pages/Home.jsx
+```javascript
+import Button from "@mui/material/Button";
+
+export default function Home() {
+  return (
+    <>
+      <h2>Home Page</h2>
+      <Button variant="contained">Hello from Material-UI!</Button>
+      <p className="text-sky-600">Tailwind is working!</p>
+    </>
+  );
+}
+```
+
+## File: src/Layout.jsx
+```javascript
+import { NavLink, Outlet } from "react-router";
+
+export default function Layout() {
+  return (
+    <div>
+      <nav>
+        <NavLink
+          to="/"
+          className={({ isActive }) => (isActive ? "font-bold" : "")}
+        >
+          Home
+        </NavLink>
+        {" | "}
+        <NavLink
+          to="/about"
+          className={({ isActive }) => (isActive ? "font-bold" : "")}
+        >
+          About
+        </NavLink>
+      </nav>
+      <hr />
+      <main>
+        {/* Child routes will render here */}
+        <Outlet />
+      </main>
+    </div>
+  );
+}
 ```
 
 ## File: vite.config.js
@@ -53,6 +94,28 @@ export default defineConfig({
 @import "@fontsource/roboto/400.css";
 @import "@fontsource/roboto/500.css";
 @import "@fontsource/roboto/700.css";
+```
+
+## File: src/main.jsx
+```javascript
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router";
+import "./index.css";
+import App from "./App.jsx";
+import { StyledEngineProvider } from "@mui/material/styles";
+import GlobalStyles from "@mui/material/GlobalStyles";
+
+createRoot(document.getElementById("root")).render(
+  <StrictMode>
+    <BrowserRouter>
+      <StyledEngineProvider enableCssLayer>
+        <GlobalStyles styles="@layer theme, base, mui, components, utilities;" />
+        <App />
+      </StyledEngineProvider>
+    </BrowserRouter>
+  </StrictMode>
+);
 ```
 
 ## File: index.html
@@ -114,16 +177,20 @@ export default defineConfig({
 
 ## File: src/App.jsx
 ```javascript
-import Button from "@mui/material/Button";
+import { Routes, Route } from "react-router";
+import Layout from "./Layout";
+import Home from "./pages/Home";
+import About from "./pages/About";
 
-export default function ButtonUsage() {
+export default function App() {
   return (
-    <>
-      <Button variant="contained">Hello world</Button>
-      <p className="text-purple-200 underline font-extralight lowercase bg-red-400">
-        test
-      </p>
-    </>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="about" element={<About />} />
+        {/* You can add more routes here */}
+      </Route>
+    </Routes>
   );
 }
 ```
