@@ -17,6 +17,8 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
+import { StyledEngineProvider } from "@mui/material/styles";
+import GlobalStyles from "@mui/material/GlobalStyles";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -56,15 +58,6 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
 });
-```
-
-## File: src/App.jsx
-```javascript
-import Button from "@mui/material/Button";
-
-export default function ButtonUsage() {
-  return <Button variant="contained">Hello world</Button>;
-}
 ```
 
 ## File: src/index.css
@@ -112,5 +105,21 @@ export default function ButtonUsage() {
     "globals": "^16.3.0",
     "vite": "^7.0.4"
   }
+}
+```
+
+## File: src/App.jsx
+```javascript
+import Button from "@mui/material/Button";
+
+export default function ButtonUsage() {
+  return (
+    <Button
+      variant="contained"
+      className="text-green-500 underline font-extralight lowercase"
+    >
+      Hello world
+    </Button>
+  );
 }
 ```

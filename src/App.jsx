@@ -4,7 +4,7 @@ export default function ButtonUsage() {
   return (
     <Button
       variant="contained"
-      className="text-green-500 underline font-extralight lowercase"
+      className="text-purple-200 underline font-extralight lowercase bg-red-400"
     >
       Hello world
     </Button>
