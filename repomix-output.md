@@ -39,7 +39,7 @@ createRoot(document.getElementById("root")).render(
     <!-- favicon goes here; this example uses ./public/vite.svg -->
     <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <title>App Name</title>
   </head>
   <body>
     <div id="root"></div>
@@ -73,7 +73,7 @@ export default defineConfig({
 ## File: package.json
 ```json
 {
-  "name": "infinite-calendar",
+  "name": "vite-react-js-tailwind-mui-reactrouter-scaffolding",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -114,12 +114,12 @@ import Button from "@mui/material/Button";
 
 export default function ButtonUsage() {
   return (
-    <Button
-      variant="contained"
-      className="text-green-500 underline font-extralight lowercase"
-    >
-      Hello world
-    </Button>
+    <>
+      <Button variant="contained">Hello world</Button>
+      <p className="text-purple-200 underline font-extralight lowercase bg-red-400">
+        test
+      </p>
+    </>
   );
 }
 ```
