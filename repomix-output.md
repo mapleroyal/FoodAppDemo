@@ -15,6 +15,7 @@ vite.config.js
 ```javascript
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router";
 import "./index.css";
 import App from "./App.jsx";
 import { StyledEngineProvider } from "@mui/material/styles";
@@ -22,30 +23,14 @@ import GlobalStyles from "@mui/material/GlobalStyles";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <StyledEngineProvider enableCssLayer>
-      <GlobalStyles styles="@layer theme, base, mui, components, utilities;" />
-      <App />
-    </StyledEngineProvider>
+    <BrowserRouter>
+      <StyledEngineProvider enableCssLayer>
+        <GlobalStyles styles="@layer theme, base, mui, components, utilities;" />
+        <App />
+      </StyledEngineProvider>
+    </BrowserRouter>
   </StrictMode>
 );
-```
-
-## File: index.html
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <!-- favicon goes here; this example uses ./public/vite.svg -->
-    <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>App Name</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
 ```
 
 ## File: vite.config.js
@@ -70,6 +55,24 @@ export default defineConfig({
 @import "@fontsource/roboto/700.css";
 ```
 
+## File: index.html
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- favicon goes here; this example uses ./public/vite.svg -->
+    <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>App Name</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+```
+
 ## File: package.json
 ```json
 {
@@ -92,6 +95,7 @@ export default defineConfig({
     "@tailwindcss/vite": "^4.1.11",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-router": "^7.7.0",
     "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
