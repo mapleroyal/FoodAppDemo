@@ -74,18 +74,6 @@ export default function Layout() {
 }
 ```
 
-## File: vite.config.js
-```javascript
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-});
-```
-
 ## File: src/index.css
 ```css
 @import "tailwindcss";
@@ -101,8 +89,8 @@ export default defineConfig({
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
-import "./index.css";
-import App from "./App.jsx";
+import "@index.css";
+import App from "@App.jsx";
 import { StyledEngineProvider } from "@mui/material/styles";
 import GlobalStyles from "@mui/material/GlobalStyles";
 
@@ -136,6 +124,24 @@ createRoot(document.getElementById("root")).render(
 </html>
 ```
 
+## File: vite.config.js
+```javascript
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import path from "path";
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      "@src": path.resolve(__dirname, "./src"),
+    },
+  },
+});
+```
+
 ## File: package.json
 ```json
 {
@@ -145,6 +151,7 @@ createRoot(document.getElementById("root")).render(
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:host": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -178,9 +185,9 @@ createRoot(document.getElementById("root")).render(
 ## File: src/App.jsx
 ```javascript
 import { Routes, Route } from "react-router";
-import Layout from "./Layout";
-import Home from "./pages/Home";
-import About from "./pages/About";
+import Layout from "@Layout";
+import Home from "@/pages/Home";
+import About from "@/pages/About";
 
 export default function App() {
   return (
