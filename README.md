@@ -431,3 +431,170 @@ export default function InfiniteScroller() {
   );
 }
 ```
+
+This version works (with a very slight hiccup/jitter on loading SOMETIMES) on desktop safari/chrome/firefox, but is bugged on iphone safari: when items load in at either end, there is a jarring visual jump.
+
+```jsx
+import {
+  useState,
+  useRef,
+  useLayoutEffect,
+  useEffect,
+  useCallback,
+} from "react";
+
+// --- CONFIGURATION ---
+const TOTAL_ITEMS = 100;
+const LOAD_BATCH_SIZE = 25;
+const ITEM_HEIGHT = 60;
+const SCROLL_THRESHOLD = 500;
+
+// --- STYLES ---
+const styles = {
+  scroller: {
+    height: "100vh",
+    width: "100%",
+    overflowY: "scroll", // This will be toggled
+    border: "2px solid #4a5568",
+    boxSizing: "border-box",
+    backgroundColor: "#f7fafc",
+    overflowAnchor: "none", // Still a good practice
+  },
+  content: {
+    position: "relative",
+  },
+  item: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: `${ITEM_HEIGHT}px`,
+    fontSize: "1.1rem",
+    color: "#2d3748",
+    borderBottom: "1px solid #e2e8f0",
+    userSelect: "none",
+  },
+  itemEven: {
+    backgroundColor: "#edf2f7",
+  },
+  itemOdd: {
+    backgroundColor: "#ffffff",
+  },
+};
+
+const getInitialItems = () => {
+  const initialFirstIndex = -Math.floor(TOTAL_ITEMS / 2);
+  return Array.from({ length: TOTAL_ITEMS }, (_, i) => initialFirstIndex + i);
+};
+
+export default function InfiniteScroller() {
+  const [items, setItems] = useState(getInitialItems);
+  const scrollerRef = useRef(null);
+  const isLoadingRef = useRef(false);
+  const scrollCorrectionRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (!scrollCorrectionRef.current || !scrollerRef.current) return;
+
+    const scroller = scrollerRef.current;
+    const { oldScrollTop, direction } = scrollCorrectionRef.current;
+    const addedHeight = LOAD_BATCH_SIZE * ITEM_HEIGHT;
+
+    // Part 1: Restore the correct logic for a windowed scroller.
+    // This fixes the runaway loading bug.
+    if (direction === "up") {
+      scroller.scrollTop = oldScrollTop + addedHeight;
+    } else if (direction === "down") {
+      scroller.scrollTop = oldScrollTop - addedHeight;
+    }
+
+    // Part 2: Restore the overflow after the scroll position is corrected.
+    scroller.style.overflowY = "scroll";
+
+    // Reset and unlock.
+    scrollCorrectionRef.current = null;
+    isLoadingRef.current = false;
+  }, [items]);
+
+  useLayoutEffect(() => {
+    const scroller = scrollerRef.current;
+    if (scroller) {
+      scroller.scrollTop = (scroller.scrollHeight - scroller.clientHeight) / 2;
+    }
+  }, []);
+
+  const loadItems = useCallback((direction) => {
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
+
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    // Part 2: The Safari Fix. Hide the scrollbar during the DOM update.
+    // This prevents the browser from painting the "jump" before we can correct it.
+    scroller.style.overflowY = "hidden";
+
+    const oldScrollTop = scroller.scrollTop;
+    scrollCorrectionRef.current = { oldScrollTop, direction };
+
+    setItems((currentItems) => {
+      if (direction === "up") {
+        const firstIndex = currentItems[0];
+        const newItems = Array.from(
+          { length: LOAD_BATCH_SIZE },
+          (_, i) => firstIndex - LOAD_BATCH_SIZE + i
+        );
+        return [...newItems, ...currentItems.slice(0, -LOAD_BATCH_SIZE)];
+      } else { // 'down'
+        const lastIndex = currentItems[currentItems.length - 1];
+        const newItems = Array.from(
+          { length: LOAD_BATCH_SIZE },
+          (_, i) => lastIndex + 1 + i
+        );
+        return [...currentItems.slice(LOAD_BATCH_SIZE), ...newItems];
+      }
+    });
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    if (isLoadingRef.current) return;
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = scroller;
+
+    if (scrollTop < SCROLL_THRESHOLD) {
+      loadItems("up");
+    } else if (scrollHeight - scrollTop - clientHeight < SCROLL_THRESHOLD) {
+      loadItems("down");
+    }
+  }, [loadItems]);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (scroller) {
+      scroller.addEventListener("scroll", handleScroll, { passive: true });
+      return () => scroller.removeEventListener("scroll", handleScroll);
+    }
+  }, [handleScroll]);
+
+  return (
+    <div ref={scrollerRef} style={styles.scroller}>
+      <div style={styles.content}>
+        {items.map((itemNumber) => (
+          <div
+            key={itemNumber}
+            style={{
+              ...styles.item,
+              ...(Math.abs(itemNumber) % 2 === 0
+                ? styles.itemEven
+                : styles.itemOdd),
+            }}
+          >
+            Item {itemNumber}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
