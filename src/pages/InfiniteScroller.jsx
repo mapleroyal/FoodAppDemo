@@ -7,14 +7,13 @@ import {
 } from "react";
 
 // --- CONFIGURATION ---
-// These could be passed as props for a more reusable component
-const TOTAL_ITEMS = 100; // Total number of items to keep in the DOM
-const LOAD_BATCH_SIZE = 25; // Number of items to load/unload at a time
-const ITEM_HEIGHT = 60; // Corresponds to the CSS height, used for calculations
-const SCROLL_THRESHOLD = 500; // Pixels from an edge to trigger a load
+const TOTAL_ITEMS = 100; // Total number of items to keep in the DOM at any time.
+const LOAD_BATCH_SIZE = 25; // Number of items to load/unload in one go.
+const ITEM_HEIGHT = 60; // Must match the CSS height for accurate scroll calculations.
+const SCROLL_THRESHOLD = 500; // Pixel distance from edges to trigger loading new items.
 
 // --- STYLES ---
-// Using a style object for encapsulation within the component file
+// Using a style object for component encapsulation.
 const styles = {
   scroller: {
     height: "100vh",
@@ -23,7 +22,9 @@ const styles = {
     border: "2px solid #4a5568",
     boxSizing: "border-box",
     backgroundColor: "#f7fafc",
-    WebkitOverflowScrolling: "touch",
+    // Disables the browser's native scroll anchoring, as we handle it manually.
+    // This is a crucial "best practice" addition for this pattern.
+    overflowAnchor: "none",
   },
   content: {
     position: "relative",
@@ -48,6 +49,7 @@ const styles = {
 
 /**
  * Creates the initial array of item indices, centered around 0.
+ * e.g., for TOTAL_ITEMS = 100, it generates [-50, -49, ..., 0, ..., 48, 49].
  */
 const getInitialItems = () => {
   const initialFirstIndex = -Math.floor(TOTAL_ITEMS / 2);
@@ -59,47 +61,61 @@ export default function InfiniteScroller() {
   const scrollerRef = useRef(null);
   const isLoadingRef = useRef(false);
 
-  // This ref holds information for the scroll position correction.
-  // It's the key to preventing the visual jump.
+  // This ref stores the necessary data to correct the scroll position after a DOM update.
+  // It's the key to bridging the gap between a React state update and a manual DOM side effect.
   const scrollCorrectionRef = useRef(null);
 
   /**
-   * This effect is the core of the smooth scrolling logic.
-   * It runs after the DOM has been updated by React, but before the browser paints.
-   * This allows us to adjust the scroll position imperceptibly.
+   * This is the core logic for a smooth, jump-free experience, especially on Safari.
+   * It runs synchronously after React updates the DOM but before the browser can paint the changes.
    */
   useLayoutEffect(() => {
-    if (!scrollCorrectionRef.current || !scrollerRef.current) return;
+    const scroller = scrollerRef.current;
+    if (!scrollCorrectionRef.current || !scroller) return;
 
     const { oldScrollTop, direction } = scrollCorrectionRef.current;
     const addedHeight = LOAD_BATCH_SIZE * ITEM_HEIGHT;
 
+    // Adjust the scroll position to counteract the visual shift from adding/removing items.
     if (direction === "up") {
-      // Content was added to the top, so we need to scroll down by the same amount.
-      scrollerRef.current.scrollTop = oldScrollTop + addedHeight;
+      // If we added items to the top, the content gets pushed down.
+      // We must increase scrollTop to keep the user's view stable.
+      scroller.scrollTop = oldScrollTop + addedHeight;
     } else if (direction === "down") {
-      // Content was removed from the top, so we need to scroll up by the same amount.
-      scrollerRef.current.scrollTop = oldScrollTop - addedHeight;
+      // If we removed items from the top, the content shifts up.
+      // We must decrease scrollTop to compensate.
+      scroller.scrollTop = oldScrollTop - addedHeight;
     }
 
-    // Reset the correction info and unlock loading
+    // ** THE SAFARI FIX - PART 2 **
+    // Restore the overflow property now that the scroll position is corrected.
+    // This happens in the same synchronous phase, so the user never sees the scrollbar disappear.
+    scroller.style.overflowY = "scroll";
+
+    // Reset the correction data.
     scrollCorrectionRef.current = null;
-    isLoadingRef.current = false;
-  }, [items]); // This effect depends on the `items` state
+
+    // ** THE MOBILE SAFARI SCROLL-HALT FIX **
+    // We delay resetting the `isLoading` flag until the next animation frame.
+    // This gives the browser a full paint cycle to process the scroll adjustment
+    // and prevents new scroll events from firing prematurely, which would halt scroll momentum.
+    requestAnimationFrame(() => {
+      isLoadingRef.current = false;
+    });
+  }, [items]); // This effect MUST run every time the `items` array changes.
 
   /**
-   * This effect runs once on mount to center the initial view.
+   * This effect runs only once on mount to center the initial viewport.
    */
   useLayoutEffect(() => {
     const scroller = scrollerRef.current;
     if (scroller) {
-      // Start the view in the middle of the rendered content
       scroller.scrollTop = (scroller.scrollHeight - scroller.clientHeight) / 2;
     }
-  }, []); // Empty dependency array ensures it runs only once
+  }, []); // Empty dependency array ensures it runs only once.
 
   /**
-   * Logic to load new items when scrolling reaches the top or bottom.
+   * The function to trigger loading new data and updating the items state.
    */
   const loadItems = useCallback((direction) => {
     if (isLoadingRef.current) return;
@@ -108,12 +124,17 @@ export default function InfiniteScroller() {
     const scroller = scrollerRef.current;
     if (!scroller) return;
 
-    // Capture scroll position *before* state change triggers a re-render.
-    const oldScrollTop = scroller.scrollTop;
+    // ** THE SAFARI FIX - PART 1 **
+    // Temporarily hide the overflow. This prevents Safari from painting an intermediate
+    // state where the DOM is updated but the scroll position is not yet corrected,
+    // which is the cause of the visual "jump".
+    scroller.style.overflowY = "hidden";
 
-    // Store correction info for useLayoutEffect
+    // Capture the current scroll position *before* the state update triggers a re-render.
+    const oldScrollTop = scroller.scrollTop;
     scrollCorrectionRef.current = { oldScrollTop, direction };
 
+    // Update the state to trigger the re-render with the new set of items.
     setItems((currentItems) => {
       if (direction === "up") {
         const firstIndex = currentItems[0];
@@ -121,7 +142,7 @@ export default function InfiniteScroller() {
           { length: LOAD_BATCH_SIZE },
           (_, i) => firstIndex - LOAD_BATCH_SIZE + i
         );
-        // Add new items to the start, remove from the end
+        // Prepend new items and remove the same number of items from the end.
         return [...newItems, ...currentItems.slice(0, -LOAD_BATCH_SIZE)];
       } else {
         // 'down'
@@ -130,14 +151,14 @@ export default function InfiniteScroller() {
           { length: LOAD_BATCH_SIZE },
           (_, i) => lastIndex + 1 + i
         );
-        // Add new items to the end, remove from the start
+        // Append new items and remove the same number of items from the start.
         return [...currentItems.slice(LOAD_BATCH_SIZE), ...newItems];
       }
     });
-  }, []); // No dependencies, as it gets all it needs from refs and arguments
+  }, []); // This function is memoized and doesn't need any dependencies.
 
   /**
-   * Scroll event handler.
+   * The scroll event handler that checks scroll position and triggers loads.
    */
   const handleScroll = useCallback(() => {
     if (isLoadingRef.current) return;
@@ -147,22 +168,20 @@ export default function InfiniteScroller() {
 
     const { scrollTop, scrollHeight, clientHeight } = scroller;
 
-    // Check if near the top
     if (scrollTop < SCROLL_THRESHOLD) {
       loadItems("up");
-    }
-    // Check if near the bottom
-    else if (scrollHeight - scrollTop - clientHeight < SCROLL_THRESHOLD) {
+    } else if (scrollHeight - scrollTop - clientHeight < SCROLL_THRESHOLD) {
       loadItems("down");
     }
-  }, [loadItems]);
+  }, [loadItems]); // Re-create this handler only if `loadItems` changes.
 
   /**
-   * Sets up and tears down the scroll event listener.
+   * Attaches and cleans up the scroll event listener.
    */
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (scroller) {
+      // Use a passive listener for better scroll performance.
       scroller.addEventListener("scroll", handleScroll, { passive: true });
       return () => scroller.removeEventListener("scroll", handleScroll);
     }
