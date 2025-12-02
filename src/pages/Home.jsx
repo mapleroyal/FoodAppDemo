@@ -1,10 +1,9 @@
-import Button from "@mui/material/Button";
-import InfiniteScroller from "@/pages/InfiniteScroller";
+import FoodAppDemo from "@/pages/FoodAppDemo";
 
 export default function Home() {
   return (
     <>
-      <InfiniteScroller />
+      <FoodAppDemo />
     </>
   );
 }
